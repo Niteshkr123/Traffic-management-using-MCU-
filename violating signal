@@ -1,0 +1,57 @@
+#include<ESP8266WiFi.h>
+#include<ESP8266HTTPClient.h>
+#define trig 4
+#define echo 5
+const char* ssid="Redmi 4A";
+const char* password="qwerty123";
+String apiKey= "S20A3PMZEMGQSIMA";    //////////
+void setup() 
+{
+  Serial.begin(115200);
+  WiFi.begin(ssid,password);
+  while(WiFi.status()!=WL_CONNECTED)
+{
+  delay(500);
+  Serial.print(".");
+}
+  Serial.println("WIFI connected");
+ // Serial.begin(9600);
+  pinMode(trig,OUTPUT);
+  pinMode(echo,INPUT);
+}
+void loop() 
+{
+  Serial.println("Started Sending");
+ if(WiFi.status()==WL_CONNECTED)
+ {
+  digitalWrite(trig,LOW);
+  delayMicroseconds(2);
+  digitalWrite(trig,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trig,LOW);
+  long duration=pulseIn(echo,HIGH);
+  float distance=(0.0343*duration)/2;
+  Serial.println(distance);
+  if(distance<11.25)
+  {
+    Serial.println("SIGNAL IS INTRUPTED ");
+  }
+  else 
+  {
+    Serial.println("SIGNAL IS NORMAL ");
+  }
+    HTTPClient http;       //declare an object of class
+    String url="http://api.thingspeak.com/update?api_key=" + apiKey +"&field2=" + String(distance);     ///////////
+    Serial.println(url.c_str());     /// to convert c type  string
+    http.begin(url);
+    int httpCode=http.GET();
+    if(httpCode>0)
+  {
+    String payload=http.getString();
+    Serial.println(payload);
+  }
+    http.end();
+ }
+  Serial.println("Waiting");
+  delay(100);
+}
